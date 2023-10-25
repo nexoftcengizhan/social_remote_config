@@ -13,7 +13,7 @@ class ConfigView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final configVM = ref.read(configProvider)..init();
+    final configVM = ref.read(configProvider);
     return Stack(
       children: [
         GestureDetector(
@@ -29,13 +29,19 @@ class ConfigView extends ConsumerWidget {
             ),
           ),
         ),
-        Align(
-          alignment: Alignment.bottomRight,
-          child: Padding(
-            padding: EdgeInsets.only(bottom: 24.h, right: 24.w),
-            child: ElevatedButton(
-              onPressed: () {},
-              child: const Text('Redis Server Güncelle'),
+        AnimatedOpacity(
+          opacity: ref.watch(configProvider).isAnyValueUpdated ? 1 : 0,
+          duration: const Duration(milliseconds: 300),
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: 24.h, right: 24.w),
+              child: ElevatedButton(
+                onPressed: () async {
+                  await configVM.updateValues();
+                },
+                child: const Text('Server\'ı Güncelle'),
+              ),
             ),
           ),
         ),
@@ -44,13 +50,24 @@ class ConfigView extends ConsumerWidget {
   }
 }
 
-class ConfigList extends ConsumerWidget {
-  const ConfigList({
-    Key? key,
-  }) : super(key: key);
+class ConfigList extends ConsumerStatefulWidget {
+  const ConfigList({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConsumerStatefulWidget> createState() => _ConfigListState();
+}
+
+class _ConfigListState extends ConsumerState<ConfigList> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      ref.read(configProvider).init();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         ...ref.watch(configProvider).updatedValues.mapIndexed((index, config) {

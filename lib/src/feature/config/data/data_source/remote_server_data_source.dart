@@ -20,7 +20,7 @@ class RemoteServerDataSource implements IRemoteServerDataSource {
   Future<void> updateValues(UpdateValuesRequestDto request) async {
     final response = await _dio.put(
       ApiConstants.updateValues,
-      data: request.toMap(),
+      data: request.valueMap,
     );
 
     final responseDto = DataResponseDto.fromMap(response.data);

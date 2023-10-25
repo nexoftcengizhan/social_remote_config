@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:social_remote_config/src/feature/config/data/model/request/update_values_request.dart';
 import 'package:social_remote_config/src/feature/config/data/service/remote_server_service.dart';
 import 'package:social_remote_config/src/feature/config/presentation/model/enum/config_enum.dart';
 import 'package:social_remote_config/src/feature/config/presentation/model/config_value_model.dart';
@@ -24,7 +25,6 @@ class ConfigViewModel extends ChangeNotifier {
 
   Future<void> init() async {
     isFetching = true;
-
     final values = isMock ? _dbValues : await remoteService.getValues();
 
     if (values != null) {
@@ -50,6 +50,15 @@ class ConfigViewModel extends ChangeNotifier {
 
   bool isChanged(ConfigType type) {
     return initialItemOf(type).value != updatedItemOf(type).value;
+  }
+
+  bool get isAnyValueUpdated {
+    final anyChanged = initialValues.any(
+      (element) {
+        return element.value != updatedItemOf(element.type).value;
+      },
+    );
+    return anyChanged;
   }
 
   ConfigType? editingType;
@@ -84,6 +93,24 @@ class ConfigViewModel extends ChangeNotifier {
   void closeAllEditings() {
     editingType = null;
     notifyListeners();
+  }
+
+  bool _isUpdating = false;
+
+  bool get isUpdating => _isUpdating;
+
+  set isUpdating(bool value) {
+    _isUpdating = value;
+    notifyListeners();
+  }
+
+  Future<void> updateValues() async {
+    if (_isUpdating) return;
+    _isUpdating = true;
+    await remoteService.updateValues(
+      UpdateValuesRequestDto.fromList(updatedValues),
+    );
+    _isUpdating = false;
   }
 }
 
