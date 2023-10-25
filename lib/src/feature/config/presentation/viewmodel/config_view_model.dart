@@ -14,7 +14,7 @@ final configProvider = ChangeNotifierProvider<ConfigViewModel>((ref) {
 class ConfigViewModel extends ChangeNotifier {
   ConfigViewModel(this.remoteService);
 
-  bool isMock = true;
+  bool isMock = false;
 
   final RemoteServerService remoteService;
 
